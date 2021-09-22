@@ -213,10 +213,28 @@ export default {
         // Totaliza vendas e lucros por mês
         m.vendas.forEach((venda, idx) => {
           const v = { ...venda }
-          m['_' + v._produtoSlug + 'Vendas'] =
-            (m['_' + v._produtoSlug + 'Vendas'] | 0) - v.valor
-          m['_' + v._produtoSlug + 'Lucro'] =
-            (m['_' + v._produtoSlug + 'Lucro'] | 0) + v._lucroTotal
+          if (m['_' + v._produtoSlug + 'Vendas'] === undefined)
+            m['_' + v._produtoSlug + 'Vendas'] = 0
+          m['_' + v._produtoSlug + 'Vendas'] -= v.valor
+          console.log(
+            'lucro ' +
+              v._produtoSlug +
+              ' em ' +
+              m.mes +
+              ' ' +
+              v._lucroTotal +
+              ' - total ' +
+              m['_' + v._produtoSlug + 'Lucro']
+          )
+          if (m['_' + v._produtoSlug + 'Lucro'] === undefined)
+            m['_' + v._produtoSlug + 'Lucro'] = 0
+          m['_' + v._produtoSlug + 'Lucro'] += v._lucroTotal
+          console.log(
+            'soma ' +
+              v._lucroTotal +
+              ' - total ' +
+              m['_' + v._produtoSlug + 'Lucro']
+          )
         })
 
         // Calcula prejuízo mensal para acumular
@@ -284,7 +302,8 @@ export default {
             if (p !== 'acao' || m['_' + p + 'Vendas'] > 20000) {
               m['_' + p + 'Imposto'] =
                 m['_' + p + 'LucroDescontado'] * aliquota[p]
-              m._impostoDevido = (m._impostoDevido | 0) + m['_' + p + 'Imposto']
+              if (m._impostoDevido === undefined) m._impostoDevido = 0
+              m._impostoDevido = m._impostoDevido + m['_' + p + 'Imposto']
             }
           }
         })
