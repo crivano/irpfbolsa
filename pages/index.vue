@@ -156,6 +156,7 @@ export default {
             (map[t.ticker].valorTotal * t.unidades) /
             map[t.ticker].quantidadeTotal
           map[t.ticker].quantidadeTotal -= t.unidades
+          console.log('lucro total da venda de ' + t.ticker + ": " + -t.valor +  ' ' + t.unidades + ' ' + map[t.ticker].valorMedio)
           t._lucroTotal = -t.valor - t.unidades * map[t.ticker].valorMedio
           t._mes = self.ddmmyyyy2yyyymm(t.data)
           t._produto =
@@ -163,6 +164,8 @@ export default {
               ? t.produto
               : t.ticker.endsWith('34')
               ? 'BDR'
+              : t.ticker === 'HASH11' || t.ticker === 'ETHE11'
+              ? 'ETF'
               : 'Ação'
           t._produtoSlug = t._produto
             .replace('ç', 'c')
