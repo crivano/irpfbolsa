@@ -151,14 +151,8 @@ export default {
           map[t.ticker].quantidadeTotal += t.unidades
           map[t.ticker].valorMedio =
             map[t.ticker].valorTotal / map[t.ticker].quantidadeTotal
+          console.log('compra de ' + t.ticker + " preço: " + t.valor +  ' unidades: ' + t.unidades + ' preço médio: ' + map[t.ticker].valorMedio)
         } else if (t.operacao === 'Venda') {
-          map[t.ticker].valorTotal -=
-            (map[t.ticker].valorTotal * t.unidades) /
-            map[t.ticker].quantidadeTotal
-          map[t.ticker].quantidadeTotal -= t.unidades
-          console.log('lucro total da venda de ' + t.ticker + ": " + -t.valor +  ' ' + t.unidades + ' ' + map[t.ticker].valorMedio)
-          t._lucroTotal = -t.valor - t.unidades * map[t.ticker].valorMedio
-          t._mes = self.ddmmyyyy2yyyymm(t.data)
           t._produto =
             t.produto !== 'Ação'
               ? t.produto
@@ -171,6 +165,15 @@ export default {
             .replace('ç', 'c')
             .replace('ã', 'a')
             .toLowerCase()
+          if (t.ticker === 'TSLA34') t.valor = -t.valor
+          map[t.ticker].valorTotal *=
+            (map[t.ticker].quantidadeTotal - t.unidades) /
+            map[t.ticker].quantidadeTotal
+          map[t.ticker].quantidadeTotal -= t.unidades
+          console.log('venda de ' + t.ticker + " preço: " + t.valor +  ' unidades: ' + t.unidades + ' preço médio: ' + map[t.ticker].valorMedio)
+          console.log('lucro total da venda de ' + t.ticker + ": " + -t.valor +  ' ' + t.unidades + ' ' + map[t.ticker].valorMedio)
+          t._lucroTotal = -t.valor - t.unidades * map[t.ticker].valorMedio
+          t._mes = self.ddmmyyyy2yyyymm(t.data)
         }
         return t
       }
@@ -209,6 +212,7 @@ export default {
     tabelaDeVendas() {
       const l = []
       const produtos = ['bdr', 'etf', 'acao', 'fii']
+      // const produtosParaPrejuizo = ['acao', 'fii']
       let mesAnterior
       this.vendasPorMes.forEach((m) => {
         const linhas = m.vendas.length
