@@ -10,7 +10,7 @@
             <th rowspan="2" class="title">Ativo</th>
             <th colspan="5" class="title">Lucro</th>
             <th colspan="4" class="title">Vendas</th>
-            <th colspan="4" class="title">Prejuízo Acum.</th>
+            <th colspan="2" class="title">Prejuízo Acum.</th>
             <th colspan="7" class="title">Imposto</th>
           </tr>
           <tr>
@@ -23,8 +23,6 @@
             <th>ETF</th>
             <th>Ação</th>
             <th>FII</th>
-            <th>BDR</th>
-            <th>ETF</th>
             <th>Ação</th>
             <th>FII</th>
             <th>BDR</th>
@@ -70,12 +68,6 @@
             </td>
             <td v-if="t.rowSpan" :rowspan="t.rowSpan">
               {{ formatPrice(t._fiiVendas) }}
-            </td>
-            <td v-if="t.rowSpan" :rowspan="t.rowSpan" class="bg-light">
-              {{ formatPrice(t._bdrPrejuizoAcum) }}
-            </td>
-            <td v-if="t.rowSpan" :rowspan="t.rowSpan" class="bg-light">
-              {{ formatPrice(t._etfPrejuizoAcum) }}
             </td>
             <td v-if="t.rowSpan" :rowspan="t.rowSpan" class="bg-light">
               {{ formatPrice(t._acaoPrejuizoAcum) }}
@@ -151,7 +143,7 @@ export default {
           map[t.ticker].quantidadeTotal += t.unidades
           map[t.ticker].valorMedio =
             map[t.ticker].valorTotal / map[t.ticker].quantidadeTotal
-          console.log('compra de ' + t.ticker + " preço: " + t.valor +  ' unidades: ' + t.unidades + ' preço médio: ' + map[t.ticker].valorMedio)
+          // console.log('compra de ' + t.ticker + " preço: " + t.valor +  ' unidades: ' + t.unidades + ' preço médio: ' + map[t.ticker].valorMedio)
         } else if (t.operacao === 'Venda') {
           t._produto =
             t.produto !== 'Ação'
@@ -170,8 +162,8 @@ export default {
             (map[t.ticker].quantidadeTotal - t.unidades) /
             map[t.ticker].quantidadeTotal
           map[t.ticker].quantidadeTotal -= t.unidades
-          console.log('venda de ' + t.ticker + " preço: " + t.valor +  ' unidades: ' + t.unidades + ' preço médio: ' + map[t.ticker].valorMedio)
-          console.log('lucro total da venda de ' + t.ticker + ": " + -t.valor +  ' ' + t.unidades + ' ' + map[t.ticker].valorMedio)
+          // console.log('venda de ' + t.ticker + " preço: " + t.valor +  ' unidades: ' + t.unidades + ' preço médio: ' + map[t.ticker].valorMedio)
+          // console.log('lucro total da venda de ' + t.ticker + ": " + -t.valor +  ' ' + t.unidades + ' ' + map[t.ticker].valorMedio)
           t._lucroTotal = -t.valor - t.unidades * map[t.ticker].valorMedio
           t._mes = self.ddmmyyyy2yyyymm(t.data)
         }
@@ -212,7 +204,7 @@ export default {
     tabelaDeVendas() {
       const l = []
       const produtos = ['bdr', 'etf', 'acao', 'fii']
-      // const produtosParaPrejuizo = ['acao', 'fii']
+      const produtosParaPrejuizo = ['acao', 'fii']
       let mesAnterior
       this.vendasPorMes.forEach((m) => {
         const linhas = m.vendas.length
@@ -223,42 +215,47 @@ export default {
           if (m['_' + v._produtoSlug + 'Vendas'] === undefined)
             m['_' + v._produtoSlug + 'Vendas'] = 0
           m['_' + v._produtoSlug + 'Vendas'] -= v.valor
-          console.log(
-            'lucro ' +
-              v._produtoSlug +
-              ' em ' +
-              m.mes +
-              ' ' +
-              v._lucroTotal +
-              ' - total ' +
-              m['_' + v._produtoSlug + 'Lucro']
-          )
+          // console.log(
+          //   'lucro ' +
+          //     v._produtoSlug +
+          //     ' em ' +
+          //     m.mes +
+          //     ' ' +
+          //     v._lucroTotal +
+          //     ' - total ' +
+          //     m['_' + v._produtoSlug + 'Lucro']
+          // )
           if (m['_' + v._produtoSlug + 'Lucro'] === undefined)
             m['_' + v._produtoSlug + 'Lucro'] = 0
           m['_' + v._produtoSlug + 'Lucro'] += v._lucroTotal
-          console.log(
-            'soma ' +
-              v._lucroTotal +
-              ' - total ' +
-              m['_' + v._produtoSlug + 'Lucro']
-          )
+          // console.log(
+          //   'soma ' +
+          //     v._lucroTotal +
+          //     ' - total ' +
+          //     m['_' + v._produtoSlug + 'Lucro']
+          // )
         })
 
         // Calcula prejuízo mensal para acumular
-        produtos.forEach((p) => {
+        produtosParaPrejuizo.forEach((p) => {
           // copia a tabela do mês anterior
           m['_' + p + 'Prejuizo'] =
             mesAnterior && mesAnterior['_' + p + 'Prejuizo']
-              ? [...mesAnterior['_' + p + 'Prejuizo']]
+              ? JSON.parse(JSON.stringify(mesAnterior['_' + p + 'Prejuizo']))
               : []
           // remove expirados com 12 meses ou mais
           m['_' + p + 'Prejuizo'] = m['_' + p + 'Prejuizo'].filter(
             (i) => this.yyyymmPlus1y(i.mes) > m.mes
           )
-          if (m['_' + p + 'Lucro'] < 0) {
+          // Acrescenta os prejuízos do mês corrente
+          let prejuizo = 0
+          produtos.forEach((pTodos) => {
+            if (m['_' + pTodos + 'Lucro'] && (pTodos === p || (p === 'acao' && pTodos !== 'fii'))) prejuizo -= m['_' + pTodos + 'Lucro']
+          })
+          if (prejuizo > 0) {
             m['_' + p + 'Prejuizo'].push({
               mes: m.mes,
-              valor: -m['_' + p + 'Lucro'],
+              valor: prejuizo,
             })
           }
           // ordena os prejuízos pela data para compensarmos nos mais antigos
@@ -269,24 +266,29 @@ export default {
           })
 
           // compensa o lucro do mês
-          if (m['_' + p + 'Lucro'] > 0) {
-            let lucro = m['_' + p + 'Lucro']
-            m['_' + p + 'Prejuizo'].forEach((i) => {
-              if (i.valor >= lucro) {
-                i.valor -= lucro
-                lucro = undefined
-              } else if (i.valor < lucro) {
-                lucro -= i.valor
-                i.valor = 0
-              }
-            })
-            if (lucro) m['_' + p + 'LucroDescontado'] = lucro
+          produtos.forEach((pTodos) => {
+            if ((pTodos === p || (p === 'acao' && pTodos !== 'fii')) && m['_' + pTodos + 'Lucro'] > 0 && (pTodos !== 'acao' || m['_' + pTodos + 'Vendas'] > 20000)) {
+              let lucro = m['_' + pTodos + 'Lucro']
+              console.log(`lucro em ${p} de ${m.mes} de ${lucro}`)
+              m['_' + p + 'Prejuizo'].forEach((i) => {
+                if (i.valor >= lucro) {
+                  console.log(`compensando totalmente o lucro em ${p} de ${m.mes} de ${lucro} com prejuizo de ${i.valor} do mês ${i.mes}`)
+                  i.valor -= lucro
+                  lucro = undefined
+                } else if (i.valor < lucro) {
+                  console.log(`compensando parcialmente o lucro em ${p} de ${m.mes} de ${lucro} com prejuizo de ${i.valor} do mês ${i.mes}, restam ${lucro - i.valor}`)
+                  lucro -= i.valor
+                  i.valor = 0
+                }
+              })
+              if (lucro) m['_' + p + 'LucroDescontado'] = lucro
 
-            // remove acumulos de lucro que foram plenamente utilizados
-            m['_' + p + 'Prejuizo'] = m['_' + p + 'Prejuizo'].filter(
-              (i) => i.valor > 0
-            )
-          }
+              // remove acumulos de lucro que foram plenamente utilizados
+              m['_' + p + 'Prejuizo'] = m['_' + p + 'Prejuizo'].filter(
+                (i) => i.valor > 0
+              )
+            }
+          })
 
           // soma todos os prejuízos gerando o prejuízo acumulado
           if (m['_' + p + 'Prejuizo'].length)
@@ -366,8 +368,9 @@ export default {
     yyyymmPlus1y(data) {
       const ano = data.split('-')[0]
       const mes = data.split('-')[1]
-
-      return ano + 1 + '-' + ('0' + mes).slice(-2)
+      const ret = parseInt(ano) + 1 + '-' + ('0' + mes).slice(-2)
+      // console.log(`yyymmPlus1y ${data} -> ${ret}`)
+      return ret
     },
     formatPrice(value) {
       if (!value) return
