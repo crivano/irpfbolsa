@@ -106,7 +106,7 @@
     </div>
     <form>
       <label>Transações</label>
-      <b-textarea v-model="json" />
+      <textarea v-model="json" class="form-control" />
       <p class="text-muted">
         No Chrome, abra Inspecionar/Rede, acesse o site Real Valor, naveque para
         o extrato, copie a Resposta de "transacoes" e cole o JSON aqui.
@@ -116,7 +116,9 @@
 </template>
 
 <script>
-export default {
+import { defineComponent } from '@vue/composition-api'
+
+export default defineComponent({
   data() {
     return {
       json: undefined,
@@ -125,7 +127,7 @@ export default {
   computed: {
     realValorTransacoes() {
       if (!this.json) return []
-      return JSON.parse(this.json).data.transacoes
+      return JSON.parse(this.json) //.data.transacoes
     },
     transacoes() {
       const l = []
@@ -149,10 +151,10 @@ export default {
             t.produto !== 'Ação'
               ? t.produto
               : t.ticker.endsWith('34')
-              ? 'BDR'
-              : t.ticker === 'HASH11' || t.ticker === 'ETHE11'
-              ? 'ETF'
-              : 'Ação'
+                ? 'BDR'
+                : t.ticker === 'HASH11' || t.ticker === 'ETHE11'
+                  ? 'ETF'
+                  : 'Ação'
           t._produtoSlug = t._produto
             .replace('ç', 'c')
             .replace('ã', 'a')
@@ -378,29 +380,35 @@ export default {
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
     },
   },
-}
+})
 </script>
 <style>
 td,
 th {
   font-size: 70%;
 }
+
 th {
   white-space: nowrap;
   text-align: right;
 }
+
 td {
   text-align: right;
 }
+
 td.title {
   text-align: left;
 }
+
 th.title {
   text-align: left;
 }
+
 h1 {
   font-size: 150%;
 }
+
 .text-muted {
   font-size: 80%;
 }
